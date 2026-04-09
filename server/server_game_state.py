@@ -56,8 +56,8 @@ class ServerGameState:
             pass
 
     def randomize_spike_locations(self):
-        available_left_spots = [(ARENA_WIDTH / 2, SPIKES_WIDTH * i) for i in range(int(ARENA_HEIGHT / SPIKES_WIDTH))]
-        available_right_spots = [(ARENA_WIDTH / 2, SPIKES_WIDTH * i) for i in range(int(ARENA_HEIGHT / SPIKES_WIDTH))]
+        available_left_spots = [(ARENA_WIDTH / 2, SPIKES_BASE_WIDTH * i) for i in range(int(ARENA_HEIGHT / SPIKES_BASE_WIDTH))]
+        available_right_spots = [(ARENA_WIDTH / 2, SPIKES_BASE_WIDTH * i) for i in range(int(ARENA_HEIGHT / SPIKES_BASE_WIDTH))]
         for _ in range(SPIKES_NUMBER):
             if random.randint(0, 1) == 0:
                 random_index = random.randint(0, len(available_left_spots) - 1)

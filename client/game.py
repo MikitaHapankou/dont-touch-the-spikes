@@ -59,6 +59,9 @@ class Game:
 
     def draw_spikes(self, left_spikes, right_spikes, center_x):
         for spike in left_spikes:
-            pygame.draw.line(self.screen, "red", (center_x - spike[0], spike[1]), (center_x - spike[0], spike[1] + SPIKES_WIDTH), 10)
+            polygon_coordinates = [(center_x - spike[0], spike[1]), (center_x - spike[0], spike[1] + SPIKES_BASE_WIDTH), (center_x - spike[0] + SPIKES_HEIGHT, spike[1] + SPIKES_BASE_WIDTH / 2)]
+            pygame.draw.polygon(self.screen, "red", polygon_coordinates, 5)
         for spike in right_spikes:
-            pygame.draw.line(self.screen, "red", (center_x + spike[0], spike[1]), (center_x + spike[0], spike[1] + SPIKES_WIDTH), 10)
+            polygon_coordinates = [(center_x + spike[0], spike[1]), (center_x + spike[0], spike[1] + SPIKES_BASE_WIDTH), (center_x + spike[0] - SPIKES_HEIGHT, spike[1] + SPIKES_BASE_WIDTH / 2)]
+            pygame.draw.polygon(self.screen, "red", polygon_coordinates, 5)
+
