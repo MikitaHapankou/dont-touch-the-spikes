@@ -1,12 +1,13 @@
 import pygame
 from shared.transmitted_data_formats import GameStateBroadcastFormat
+from shared.game_constants import *
 
 class Game:
 
     def __init__(self):
         pygame.init()
         pygame.font.init()
-        self.screen = pygame.display.set_mode((1280, 720))
+        self.screen = pygame.display.set_mode(SCREEN_SIZE)
         self.level_font = pygame.font.Font(None, 300)
 
     @staticmethod
@@ -19,9 +20,10 @@ class Game:
         center_x = self.screen.get_width() / 2
         center_y = self.screen.get_height() / 2
         
-        pygame.draw.line(self.screen, "black", (center_x - 220, 0), (center_x - 220, 720), 5)
-        pygame.draw.line(self.screen, "black", (center_x + 220, 0), (center_x + 220, 720), 5)
-        pygame.draw.line(self.screen, "blue", (0, center_y + 234), (1280, center_y + 234), 5)
+        pygame.draw.line(self.screen, "black", (center_x - ARENA_WIDTH / 2, 0), (center_x - ARENA_WIDTH / 2, SCREEN_SIZE[1]), 5)
+        pygame.draw.line(self.screen, "black", (center_x + ARENA_WIDTH / 2, 0), (center_x + ARENA_WIDTH / 2, SCREEN_SIZE[1]), 5)
+        pygame.draw.line(self.screen, "black", (0, center_y + ARENA_HEIGHT / 2), (SCREEN_SIZE[0], center_y + ARENA_HEIGHT / 2 ), 5)
+        pygame.draw.line(self.screen, "black", (0, center_y - ARENA_HEIGHT / 2), (SCREEN_SIZE[0], center_y - ARENA_HEIGHT / 2), 5)
 
         if server_game_state.player_positions:
             level_value = int(server_game_state.player_positions[0]["level"])

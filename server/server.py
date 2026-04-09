@@ -17,7 +17,7 @@ SERVER_ADDRESS = ("127.0.0.1", 9999)
 UPDATE_RATE = 60
 DT = 1.0 / UPDATE_RATE
 
-NUMBER_OF_PLAYERS = 2
+NUMBER_OF_PLAYERS = 1
 
 
 class ServerState(Enum): # surely more states will come along the way
