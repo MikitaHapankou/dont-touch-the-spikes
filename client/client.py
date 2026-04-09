@@ -111,7 +111,6 @@ class Client: # will hold reference to the client side game state and will order
     def try_updating_local_game_state(self):
         try:
             last_state = None
-
             while not self.game_state_data_queue.empty():
                 last_state = self.game_state_data_queue.get(block=False)
 

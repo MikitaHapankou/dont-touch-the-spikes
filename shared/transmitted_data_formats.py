@@ -17,8 +17,10 @@ class ClientInputDataFormat(Enum):
 
 class GameStateBroadcastFormat:  # later this exchange format will look different
 
-    def __init__(self, players_positions):
+    def __init__(self, players_positions, left_spikes_positions, right_spikes_positions):
         self.player_positions = players_positions
+        self.left_spikes_positions = left_spikes_positions
+        self.right_spikes_positions = right_spikes_positions
 
 class ClientInputData:
     def __init__(self, id):

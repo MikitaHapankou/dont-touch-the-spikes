@@ -139,7 +139,8 @@ class Server: # for now server is designed to hold only one game session at once
 
             if acc >= DT:
                 self.game_state.update(DT, multiplier)
-                game_data = GameStateBroadcastFormat(self.game_state.return_player_positions())
+                spikes_positions = self.game_state.return_spike_locations()
+                game_data = GameStateBroadcastFormat(self.game_state.return_player_positions(), spikes_positions[0], spikes_positions[1])
                 try:
                     self.game_states_to_send_queue.put(game_data, block=False)  # queue allegedly is thread safe
                 except queue.Full:
