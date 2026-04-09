@@ -5,7 +5,12 @@ from enum import Enum
 class MatchmakingFormingDataFormat(Enum): # clients' requests and server responses share the same format
     CLIENT_SEEKS_MATCH = 1
     FOUND_MATCH = 2
+    PLAYER_ID = 3
 
+class MatchmakingResponse:
+    def __init__(self, status, player_id):
+        self.status = status
+        self.player_id = player_id
 
 class ClientInputDataFormat(Enum):
     CHANGED_DIRECTION = 1

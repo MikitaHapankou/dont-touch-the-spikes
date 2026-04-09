@@ -1,5 +1,6 @@
 from queue import Queue, Empty
 from shared.transmitted_data_formats import ClientInputDataFormat
+import random
 
 class ServerGameState:
 
@@ -19,13 +20,14 @@ class ServerGameState:
 
 
     def return_player_positions(self):
-        return [player.pos for player in self.players_states]
+        return [{"id": p.id, "pos": p.pos.copy()} for p in self.players_states]
 
 
 class ServerPlayerState:
 
-    def __init__(self):
+    def __init__(self, id):
         self.input_queue: Queue = Queue()
         self.velocity = [200, 0]
-        self.pos = [0, 0]
+        self.pos = [random.randint(-200, 200), 0]
+        self.id = id
 

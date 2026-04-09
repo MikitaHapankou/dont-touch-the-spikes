@@ -10,7 +10,7 @@ import time
 import pygame.constants
 from queue import Queue, Full, Empty
 from enum import Enum
-from shared.transmitted_data_formats import GameStateBroadcastFormat, MatchmakingFormingDataFormat, ClientInputDataFormat
+from shared.transmitted_data_formats import GameStateBroadcastFormat, MatchmakingFormingDataFormat, ClientInputDataFormat, MatchmakingResponse
 from game import Game
 
 SERVER_ADDRESS = ("127.0.0.1", 9999) # we will use localhost for now
@@ -28,7 +28,7 @@ class ServerGameStateReceiver(threading.Thread): # should handle interrupting th
         super().__init__()
         self.s: socket.socket = client_sock
         self.game_state_data_queue: Queue = game_state_data_q
-        return
+        self.id = None
 
     def run(self):
         while True:
@@ -86,16 +86,17 @@ class Client: # will hold reference to the client side game state and will order
         data, server_addr = self.s.recvfrom(1024) # will block if it does not receive a response from server
 
         try:
-            server_response: MatchmakingFormingDataFormat = pickle.loads(data)
+            server_response: MatchmakingResponse = pickle.loads(data)
         except pickle.UnpicklingError:
             print("Client received corrupted response when trying to find a match!")
             return
 
-        if not isinstance(server_response, MatchmakingFormingDataFormat):
+        if not isinstance(server_response, MatchmakingResponse):
             return
 
-        if server_addr == SERVER_ADDRESS and server_response == MatchmakingFormingDataFormat.FOUND_MATCH:
+        if server_addr == SERVER_ADDRESS and server_response.status == MatchmakingFormingDataFormat.FOUND_MATCH:
             print("Game has been found!")
+            self.id = server_response.player_id
             self.state = ClientState.PREPARING_GAME
 
     def initialize_game(self):
@@ -106,8 +107,13 @@ class Client: # will hold reference to the client side game state and will order
 
     def try_updating_local_game_state(self):
         try:
-            game_state: GameStateBroadcastFormat = self.game_state_data_queue.get(block=False)
-            self.game.update_based_on_server_game_state(game_state)
+            last_state = None
+            
+            while not self.game_state_data_queue.empty():
+                last_state = self.game_state_data_queue.get(block=False)
+
+            if last_state:
+                self.game.update_based_on_server_game_state(last_state, self.id)
         except Empty:
             print("Client tried updating his game state but game state queue was empty") # ideally, a client should never reach this kind of situation
 

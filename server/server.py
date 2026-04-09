@@ -11,13 +11,13 @@ import time
 from queue import Queue
 from enum import Enum
 from server_game_state import ServerPlayerState, ServerGameState
-from shared.transmitted_data_formats import GameStateBroadcastFormat, MatchmakingFormingDataFormat, ClientInputDataFormat
+from shared.transmitted_data_formats import GameStateBroadcastFormat, MatchmakingFormingDataFormat, ClientInputDataFormat, MatchmakingResponse
 
 SERVER_ADDRESS = ("127.0.0.1", 9999)
 UPDATE_RATE = 60
 DT = 1.0 / UPDATE_RATE
 
-NUMBER_OF_PLAYERS = 1
+NUMBER_OF_PLAYERS = 2
 
 
 class ServerState(Enum): # surely more states will come along the way
@@ -33,7 +33,6 @@ class ClientInputReceiver(threading.Thread):
         self.s: socket.socket = server_sock
         self.client_addr = client_addr
         self.client_queues: list[Queue] = client_q
-        return
 
     def run(self):
         while self.is_alive():
@@ -70,7 +69,7 @@ class Server: # for now server is designed to hold only one game session at once
     def __init__(self):
         self.server_socket = socket.socket(family=socket.AF_INET, type=socket.SOCK_DGRAM)
         self.server_socket.bind(SERVER_ADDRESS)
-        self.clients = list()
+        self.clients = []
         self.client_conn_handler = None
         self.broadcaster = None
         self.game_state = None
@@ -102,7 +101,7 @@ class Server: # for now server is designed to hold only one game session at once
 
             if client_request == MatchmakingFormingDataFormat.CLIENT_SEEKS_MATCH:
                 self.clients.append(client_addr)
-                response = MatchmakingFormingDataFormat.FOUND_MATCH
+                response = MatchmakingResponse(MatchmakingFormingDataFormat.FOUND_MATCH, len(self.clients))
                 serialized_response = pickle.dumps(response)
                 self.server_socket.sendto(serialized_response, client_addr)
 
@@ -111,10 +110,10 @@ class Server: # for now server is designed to hold only one game session at once
                 return # we have a set of players so we move on
 
     def prepare_the_game(self):
-        buffs = dict()
-        players_states = list()
-        for client in self.clients:
-            player_state = ServerPlayerState()
+        buffs = {}
+        players_states = []
+        for i, client in enumerate(self.clients): 
+            player_state = ServerPlayerState(i + 1)
             players_states.append(player_state)
             buffs[client[0]] = player_state.input_queue
 
@@ -140,7 +139,7 @@ class Server: # for now server is designed to hold only one game session at once
                 try:
                     self.game_states_to_send_queue.put(game_data, block=False)  # queue allegedly is thread safe
                 except queue.Full:
-                    print(f"Broadcaster queue is full!")
+                    print("Broadcaster queue is full!")
                 acc -= DT
 
 if __name__ == "__main__":
