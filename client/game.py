@@ -5,8 +5,8 @@ class Game:
 
     def __init__(self):
         pygame.init()
-        self.screen = pygame.display.set_mode((1280, 720))
         pygame.font.init()
+        self.screen = pygame.display.set_mode((1280, 720))
         self.level_font = pygame.font.Font(None, 300)
 
     @staticmethod
@@ -14,7 +14,7 @@ class Game:
         events = pygame.event.get()
         return events
 
-    def update_based_on_server_game_state(self, server_game_state: GameStateBroadcastFormat, id):
+    def update_based_on_server_game_state(self, server_game_state: GameStateBroadcastFormat, client_id):
         self.screen.fill("white")
         center_x = self.screen.get_width() / 2
         center_y = self.screen.get_height() / 2
@@ -38,9 +38,9 @@ class Game:
             p_id = player["id"]
             pos = player["pos"]
             alive = player["alive"]
-            if p_id == id and alive:
+            if p_id == client_id and alive:
                 screen_self_pos = pygame.Vector2(self.screen.get_width() / 2 + pos[0], self.screen.get_height() / 2 + pos[1])
-                print(f"Player {id} is at x: {pos[0]}, y: {pos[1]}")
+                print(f"Player {client_id} is at x: {pos[0]}, y: {pos[1]}")
                 pygame.draw.circle(self.screen, "red", screen_self_pos, 40)
             elif alive:
                 screen_enemy_pos = pygame.Vector2(self.screen.get_width() / 2 + pos[0], self.screen.get_height() / 2 + pos[1])

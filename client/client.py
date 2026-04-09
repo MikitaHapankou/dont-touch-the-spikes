@@ -49,9 +49,10 @@ class ServerGameStateReceiver(threading.Thread): # should handle interrupting th
 class Client: # will hold reference to the client side game state and will order to update visuals
 
     def __init__(self):
-        self.s: socket.socket = socket.socket(family=socket.AF_INET, type=socket.SOCK_DGRAM)
+        self.client_socket: socket.socket = socket.socket(family=socket.AF_INET, type=socket.SOCK_DGRAM)
         self.game_state_data_queue: Queue = Queue()
         self.state = ClientState.SEEKING_MATCH
+        self.client_id = None
         self.game = None
         self.conn = None
         self.client_loop()
@@ -63,27 +64,29 @@ class Client: # will hold reference to the client side game state and will order
             elif self.state == ClientState.PREPARING_GAME:
                 self.initialize_game()
             elif self.state == ClientState.CONNECTED:
+                self.game_loop()
 
-                t1 = time.perf_counter()
-                acc = 0.0
-                while True:
-                    self.process_pygame_events()
-                    t2 = time.perf_counter()
-                    time_delta = t2 - t1
-                    t1 = t2
+    def game_loop(self):
+        t1 = time.perf_counter()
+        acc = 0.0
+        while True:
+            self.process_pygame_events()
+            t2 = time.perf_counter()
+            time_delta = t2 - t1
+            t1 = t2
 
-                    acc += time_delta
-                    if acc >= DT:
-                        self.try_updating_local_game_state()
-                        acc -= DT
+            acc += time_delta
+            if acc >= DT:
+                self.try_updating_local_game_state()
+                acc -= DT
 
     def find_a_match(self):
         command = MatchmakingFormingDataFormat.CLIENT_SEEKS_MATCH
         serialized_command = pickle.dumps(command)
         print(f"Looking for a lobby at address {SERVER_ADDRESS[0]}")
-        self.s.sendto(serialized_command, SERVER_ADDRESS)
+        self.client_socket.sendto(serialized_command, SERVER_ADDRESS)
 
-        data, server_addr = self.s.recvfrom(1024) # will block if it does not receive a response from server
+        data, server_addr = self.client_socket.recvfrom(1024) # will block if it does not receive a response from server
 
         try:
             server_response: MatchmakingResponse = pickle.loads(data)
@@ -96,12 +99,12 @@ class Client: # will hold reference to the client side game state and will order
 
         if server_addr == SERVER_ADDRESS and server_response.status == MatchmakingFormingDataFormat.FOUND_MATCH:
             print("Game has been found!")
-            self.id = server_response.player_id
+            self.client_id = server_response.player_id
             self.state = ClientState.PREPARING_GAME
 
     def initialize_game(self):
         self.game = Game()
-        self.conn = ServerGameStateReceiver(self.game_state_data_queue, self.s)
+        self.conn = ServerGameStateReceiver(self.game_state_data_queue, self.client_socket)
         self.conn.start()
         self.state = ClientState.CONNECTED
 
@@ -113,7 +116,7 @@ class Client: # will hold reference to the client side game state and will order
                 last_state = self.game_state_data_queue.get(block=False)
 
             if last_state:
-                self.game.update_based_on_server_game_state(last_state, self.id)
+                self.game.update_based_on_server_game_state(last_state, self.client_id)
         except Empty:
             print("Client tried updating his game state but game state queue was empty") # ideally, a client should never reach this kind of situation
 
@@ -127,7 +130,7 @@ class Client: # will hold reference to the client side game state and will order
     def send_user_input(self):
         client_input: ClientInputDataFormat = ClientInputDataFormat.JUMPED
         serialized_input = pickle.dumps(client_input)
-        self.s.sendto(serialized_input, SERVER_ADDRESS)
+        self.client_socket.sendto(serialized_input, SERVER_ADDRESS)
 
 if __name__ == "__main__":
     client = Client()
