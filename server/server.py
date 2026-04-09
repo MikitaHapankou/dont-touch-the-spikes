@@ -17,10 +17,10 @@ SERVER_ADDRESS = ("127.0.0.1", 9999)
 UPDATE_RATE = 60
 DT = 1.0 / UPDATE_RATE
 
-NUMBER_OF_PLAYERS = 1
+NUMBER_OF_PLAYERS = 2
 
 
-class ServerState(Enum): # surely more states will come along the way
+class ServerState(Enum):
     GATHERING_PLAYERS = 1
     PREPARING_THE_GAME = 2
     PLAYING_OUT_THE_GAME = 3
@@ -48,7 +48,7 @@ class ClientInputReceiver(threading.Thread):
                     print(f"Server received corrupted players input. Players address is {sender_addr[0]}")
 
 
-class GameStateBroadcaster(threading.Thread): # unnecessary
+class GameStateBroadcaster(threading.Thread):
 
     def __init__(self, client_addr, server_sock, unsend_game_states_queues):
         super().__init__()
@@ -64,7 +64,7 @@ class GameStateBroadcaster(threading.Thread): # unnecessary
                 self.s.sendto(serialized_game_state, addr)
 
 
-class Server: # for now server is designed to hold only one game session at once
+class Server:
 
     def __init__(self):
         self.server_socket = socket.socket(family=socket.AF_INET, type=socket.SOCK_DGRAM)
@@ -107,7 +107,7 @@ class Server: # for now server is designed to hold only one game session at once
 
             if len(self.clients) >= NUMBER_OF_PLAYERS:
                 self.state = ServerState.PREPARING_THE_GAME
-                return # we have a set of players so we move on
+                return
 
     def prepare_the_game(self):
         buffs = {}
@@ -142,7 +142,7 @@ class Server: # for now server is designed to hold only one game session at once
                 spikes_positions = self.game_state.return_spike_locations()
                 game_data = GameStateBroadcastFormat(self.game_state.return_player_positions(), spikes_positions[0], spikes_positions[1])
                 try:
-                    self.game_states_to_send_queue.put(game_data, block=False)  # queue allegedly is thread safe
+                    self.game_states_to_send_queue.put(game_data, block=False)
                 except queue.Full:
                     print("Broadcaster queue is full!")
                 acc -= DT

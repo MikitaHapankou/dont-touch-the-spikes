@@ -1,8 +1,6 @@
 from enum import Enum
-# sending whole python objects seems slow, but is enough for our needs (alternative - JSON)
-# at least IDE helps you when you write messages which will be transmitted
 
-class MatchmakingFormingDataFormat(Enum): # clients' requests and server responses share the same format
+class MatchmakingFormingDataFormat(Enum):
     CLIENT_SEEKS_MATCH = 1
     FOUND_MATCH = 2
     PLAYER_ID = 3
@@ -15,7 +13,7 @@ class MatchmakingResponse:
 class ClientInputDataFormat(Enum):
     JUMPED = 1
 
-class GameStateBroadcastFormat:  # later this exchange format will look different
+class GameStateBroadcastFormat:
 
     def __init__(self, players_positions, left_spikes_positions, right_spikes_positions):
         self.player_positions = players_positions

@@ -2,6 +2,7 @@ import pygame
 from shared.transmitted_data_formats import GameStateBroadcastFormat
 from shared.game_constants import *
 
+
 class Game:
 
     def __init__(self):
@@ -12,56 +13,83 @@ class Game:
 
     @staticmethod
     def return_pygame_events():
-        events = pygame.event.get()
-        return events
+        return pygame.event.get()
 
     def update_based_on_server_game_state(self, server_game_state: GameStateBroadcastFormat, client_id):
         self.screen.fill("white")
-        center_x = self.screen.get_width() / 2
-        center_y = self.screen.get_height() / 2
-        
-        self.draw_arena(center_x, center_y)
+        cx = self.screen.get_width()  / 2
+        cy = self.screen.get_height() / 2
+
+        self.draw_arena(cx, cy)
 
         if server_game_state.player_positions:
-            level_value = int(server_game_state.player_positions[0]["level"])
+            level_value = max(int(p["level"]) for p in server_game_state.player_positions)
         else:
             level_value = 1
-        level_text_surface = self.level_font.render(str(level_value), True, (220, 220, 220))
-        text_rect = level_text_surface.get_rect(center=(center_x, center_y))
-        self.screen.blit(level_text_surface, text_rect)
+        level_surf = self.level_font.render(str(level_value), True, (220, 220, 220))
+        self.screen.blit(level_surf, level_surf.get_rect(center=(cx, cy)))
 
         self.draw_players(server_game_state.player_positions, client_id)
-        self.draw_spikes(server_game_state.left_spikes_positions, server_game_state.right_spikes_positions, center_x)
+        self.draw_spikes(server_game_state.left_spikes_positions,
+                         server_game_state.right_spikes_positions, cx, cy)
         pygame.display.flip()
 
-    def draw_arena(self, center_x, center_y):
-        pygame.draw.line(self.screen, "black", (center_x - ARENA_WIDTH / 2, 0),
-                         (center_x - ARENA_WIDTH / 2, SCREEN_SIZE[1]), 5)
-        pygame.draw.line(self.screen, "black", (center_x + ARENA_WIDTH / 2, 0),
-                         (center_x + ARENA_WIDTH / 2, SCREEN_SIZE[1]), 5)
-        pygame.draw.line(self.screen, "black", (0, center_y + ARENA_HEIGHT / 2),
-                         (SCREEN_SIZE[0], center_y + ARENA_HEIGHT / 2), 5)
-        pygame.draw.line(self.screen, "black", (0, center_y - ARENA_HEIGHT / 2),
-                         (SCREEN_SIZE[0], center_y - ARENA_HEIGHT / 2), 5)
+
+    def draw_arena(self, cx, cy):
+        left_x   = cx - ARENA_WIDTH  / 2
+        right_x  = cx + ARENA_WIDTH  / 2
+        top_y    = cy - ARENA_HEIGHT / 2
+        bottom_y = cy + ARENA_HEIGHT / 2
+        wall_w   = 5
+
+        # Left & right walls
+        pygame.draw.line(self.screen, "black", (left_x,  0), (left_x,  SCREEN_SIZE[1]), wall_w)
+        pygame.draw.line(self.screen, "black", (right_x, 0), (right_x, SCREEN_SIZE[1]), wall_w)
+        # Top & bottom floors
+        pygame.draw.line(self.screen, "black", (0, top_y),    (SCREEN_SIZE[0], top_y),    wall_w)
+        pygame.draw.line(self.screen, "black", (0, bottom_y), (SCREEN_SIZE[0], bottom_y), wall_w)
+        floor_rect = pygame.Rect(left_x, bottom_y, ARENA_WIDTH, wall_w + 4)
+        pygame.draw.rect(self.screen, (60, 60, 60), floor_rect)
 
     def draw_players(self, player_positions, client_id):
         for player in player_positions:
+            if not player["alive"]:
+                continue
             p_id = player["id"]
-            pos = player["pos"]
-            alive = player["alive"]
-            if p_id == client_id and alive:
-                screen_self_pos = pygame.Vector2(self.screen.get_width() / 2 + pos[0], self.screen.get_height() / 2 + pos[1])
-                print(f"Player {client_id} is at x: {pos[0]}, y: {pos[1]}")
-                pygame.draw.circle(self.screen, "red", screen_self_pos, 40)
-            elif alive:
-                screen_enemy_pos = pygame.Vector2(self.screen.get_width() / 2 + pos[0], self.screen.get_height() / 2 + pos[1])
-                pygame.draw.circle(self.screen, "blue", screen_enemy_pos, 40)
+            ax, ay = player["pos"]
+            sx = self.screen.get_width()  / 2 + ax
+            sy = self.screen.get_height() / 2 + ay
+            color = "red" if p_id == client_id else "blue"
+            pygame.draw.circle(self.screen, color, (sx, sy), PLAYER_RADIUS)
 
-    def draw_spikes(self, left_spikes, right_spikes, center_x):
+    def draw_spikes(self, left_spikes, right_spikes, cx, cy):
+
         for spike in left_spikes:
-            polygon_coordinates = [(center_x - spike[0], spike[1]), (center_x - spike[0], spike[1] + SPIKES_BASE_WIDTH), (center_x - spike[0] + SPIKES_HEIGHT, spike[1] + SPIKES_BASE_WIDTH / 2)]
-            pygame.draw.polygon(self.screen, "red", polygon_coordinates, 5)
-        for spike in right_spikes:
-            polygon_coordinates = [(center_x + spike[0], spike[1]), (center_x + spike[0], spike[1] + SPIKES_BASE_WIDTH), (center_x + spike[0] - SPIKES_HEIGHT, spike[1] + SPIKES_BASE_WIDTH / 2)]
-            pygame.draw.polygon(self.screen, "red", polygon_coordinates, 5)
+            wall_ax = -ARENA_WIDTH / 2
+            top_ay  = spike[1]
+            bot_ay  = top_ay + SPIKES_BASE_WIDTH
+            mid_ay  = top_ay + SPIKES_BASE_WIDTH / 2
+            tip_ax  = wall_ax + SPIKES_HEIGHT
 
+            pts = [
+                (cx + wall_ax, cy + top_ay),
+                (cx + wall_ax, cy + bot_ay),
+                (cx + tip_ax,  cy + mid_ay),
+            ]
+            pygame.draw.polygon(self.screen, "red", pts)
+            pygame.draw.polygon(self.screen, (180, 0, 0), pts, 2)
+
+        for spike in right_spikes:
+            wall_ax = ARENA_WIDTH / 2
+            top_ay  = spike[1]
+            bot_ay  = top_ay + SPIKES_BASE_WIDTH
+            mid_ay  = top_ay + SPIKES_BASE_WIDTH / 2
+            tip_ax  = wall_ax - SPIKES_HEIGHT
+
+            pts = [
+                (cx + wall_ax, cy + top_ay),
+                (cx + wall_ax, cy + bot_ay),
+                (cx + tip_ax,  cy + mid_ay),
+            ]
+            pygame.draw.polygon(self.screen, "red", pts)
+            pygame.draw.polygon(self.screen, (180, 0, 0), pts, 2)

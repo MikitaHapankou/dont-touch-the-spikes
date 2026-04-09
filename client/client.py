@@ -13,16 +13,16 @@ from enum import Enum
 from shared.transmitted_data_formats import GameStateBroadcastFormat, MatchmakingFormingDataFormat, ClientInputDataFormat, MatchmakingResponse
 from game import Game
 
-SERVER_ADDRESS = ("127.0.0.1", 9999) # we will use localhost for now
-UPDATE_RATE = 60 # these values need to be the same as values in server.py
+SERVER_ADDRESS = ("127.0.0.1", 9999)
+UPDATE_RATE = 60
 DT = 1.0 / UPDATE_RATE
 
 class ClientState(Enum):
-    SEEKING_MATCH = 1 # confusing name. should be more like JOINING_LOBBY
+    SEEKING_MATCH = 1
     PREPARING_GAME = 2
     CONNECTED = 3
 
-class ServerGameStateReceiver(threading.Thread): # should handle interrupting the connections
+class ServerGameStateReceiver(threading.Thread):
 
     def __init__(self, game_state_data_q, client_sock):
         super().__init__()
@@ -46,7 +46,7 @@ class ServerGameStateReceiver(threading.Thread): # should handle interrupting th
                 print("Client game_state buffer is full!")
 
 
-class Client: # will hold reference to the client side game state and will order to update visuals
+class Client:
 
     def __init__(self):
         self.client_socket: socket.socket = socket.socket(family=socket.AF_INET, type=socket.SOCK_DGRAM)
@@ -86,7 +86,7 @@ class Client: # will hold reference to the client side game state and will order
         print(f"Looking for a lobby at address {SERVER_ADDRESS[0]}")
         self.client_socket.sendto(serialized_command, SERVER_ADDRESS)
 
-        data, server_addr = self.client_socket.recvfrom(1024) # will block if it does not receive a response from server
+        data, server_addr = self.client_socket.recvfrom(1024)
 
         try:
             server_response: MatchmakingResponse = pickle.loads(data)
@@ -117,12 +117,12 @@ class Client: # will hold reference to the client side game state and will order
             if last_state:
                 self.game.update_based_on_server_game_state(last_state, self.client_id)
         except Empty:
-            print("Client tried updating his game state but game state queue was empty") # ideally, a client should never reach this kind of situation
+            print("Client tried updating his game state but game state queue was empty")
 
     def process_pygame_events(self):
         for event in self.game.return_pygame_events():
             if event.type == pygame.constants.QUIT:
-                exit(0) # harsh exit
+                exit(0)
             elif event.type == pygame.constants.KEYDOWN and event.key == pygame.constants.K_SPACE:
                 self.send_user_input()
 
