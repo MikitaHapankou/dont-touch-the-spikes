@@ -15,8 +15,12 @@ class MatchmakingResponse:
 class ClientInputDataFormat(Enum):
     JUMPED = 1
 
-
 class GameStateBroadcastFormat:  # later this exchange format will look different
 
     def __init__(self, players_positions):
         self.player_positions = players_positions
+
+class ClientInputData:
+    def __init__(self, id):
+        self.isJumping = ClientInputDataFormat.JUMPED
+        self.id = None

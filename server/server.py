@@ -134,8 +134,8 @@ class Server: # for now server is designed to hold only one game session at once
             t1 = t2
             acc += time_delta
             multiplier = 1
-            if (t2 - start_time) // 10 > 1:
-                multiplier = (t2 - start_time) // 10
+            if (t2 - start_time) // 5 > 1:
+                multiplier = (t2 - start_time) // 5
 
             if acc >= DT:
                 self.game_state.update(DT, multiplier)

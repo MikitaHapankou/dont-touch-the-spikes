@@ -9,6 +9,7 @@ class ServerGameState:
 
     def update(self, time_delta, multiplier): #for test purposes only
         for player in self.players_states:
+            player.level = multiplier
             player.pos[0] += time_delta * player.velocity[0] * multiplier
             if player.pos[0] > 200 or player.pos[0] < -200:
                 player.velocity[0] *= -1
@@ -40,12 +41,13 @@ class ServerGameState:
                 player.is_on_ground = True
 
     def return_player_positions(self):
-        return [{"id": p.id, "pos": p.pos.copy(), "alive": p.alive} for p in self.players_states]
+        return [{"id": p.id, "pos": p.pos.copy(), "alive": p.alive, "level": p.level} for p in self.players_states]
 
 
 class ServerPlayerState:
 
     def __init__(self, id):
+        self.level = 1
         self.input_queue: Queue = Queue()
         self.velocity = [200, 0]
         self.pos = [random.randint(-200, 200), 0]
