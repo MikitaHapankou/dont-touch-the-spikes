@@ -40,7 +40,7 @@ class ClientInputReceiver(threading.Thread):
             if sender_addr in self.client_addr:
                 try:
                     client_input: ClientInputDataFormat = pickle.loads(data)
-                    self.client_queues[sender_addr[0]].put(client_input, block=False) # queue allegedly is thread safe
+                    self.client_queues[sender_addr].put(client_input)
                     print(f"Player received user input. Player address is {sender_addr[0]}")
                 except queue.Full:
                     print(f"Connection handler failed at putting received data into player's queue. Players address is {sender_addr[0]}")
@@ -115,7 +115,7 @@ class Server: # for now server is designed to hold only one game session at once
         for i, client in enumerate(self.clients): 
             player_state = ServerPlayerState(i + 1)
             players_states.append(player_state)
-            buffs[client[0]] = player_state.input_queue
+            buffs[client] = player_state.input_queue
 
         self.game_state = ServerGameState(players_states)
         self.client_conn_handler = ClientInputReceiver(self.clients, self.server_socket, buffs)

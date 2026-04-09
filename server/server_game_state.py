@@ -16,6 +16,7 @@ class ServerGameState:
             if player.pos[1] < -300:
                 player.pos[1] = -300
                 player.velocity[1] = 0
+                player.alive = False
 
             try:
                 while not player.input_queue.empty():
@@ -39,7 +40,7 @@ class ServerGameState:
                 player.is_on_ground = True
 
     def return_player_positions(self):
-        return [{"id": p.id, "pos": p.pos.copy()} for p in self.players_states]
+        return [{"id": p.id, "pos": p.pos.copy(), "alive": p.alive} for p in self.players_states]
 
 
 class ServerPlayerState:
@@ -49,7 +50,7 @@ class ServerPlayerState:
         self.velocity = [200, 0]
         self.pos = [random.randint(-200, 200), 0]
         self.id = id
+        self.alive = True
         self.gravity = 1200
         self.jump_force = -600
         self.is_on_ground = False
-
