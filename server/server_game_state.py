@@ -13,10 +13,25 @@ class ServerGameState:
             if player.pos[0] > 200 or player.pos[0] < -200:
                 player.velocity[0] *= -1
             try:
-                if player.input_queue.get(block=False) == ClientInputDataFormat.CHANGED_DIRECTION:
-                    player.velocity[0] *= -1
+                while not player.input_queue.empty():
+                    if player.input_queue.get(block=False) == ClientInputDataFormat.JUMPED:
+                        if player.is_on_ground:
+                            player.velocity[1] = player.jump_force
+                            player.is_on_ground = False
+                        else:
+                            player.velocity[1] = player.jump_force
             except Empty:
                 pass
+            
+            if not player.is_on_ground:
+                player.velocity[1] += player.gravity * time_delta
+            
+            player.pos[1] += player.velocity[1] * time_delta
+
+            if player.pos[1] > 200:
+                player.pos[1] = 200
+                player.velocity[1] = 0
+                player.is_on_ground = True
 
 
     def return_player_positions(self):
@@ -30,4 +45,7 @@ class ServerPlayerState:
         self.velocity = [200, 0]
         self.pos = [random.randint(-200, 200), 0]
         self.id = id
+        self.gravity = 1200
+        self.jump_force = -600
+        self.is_on_ground = False
 

@@ -13,7 +13,7 @@ class MatchmakingResponse:
         self.player_id = player_id
 
 class ClientInputDataFormat(Enum):
-    CHANGED_DIRECTION = 1
+    JUMPED = 1
 
 
 class GameStateBroadcastFormat:  # later this exchange format will look different

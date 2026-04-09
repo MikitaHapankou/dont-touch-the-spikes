@@ -108,7 +108,7 @@ class Client: # will hold reference to the client side game state and will order
     def try_updating_local_game_state(self):
         try:
             last_state = None
-            
+
             while not self.game_state_data_queue.empty():
                 last_state = self.game_state_data_queue.get(block=False)
 
@@ -125,7 +125,7 @@ class Client: # will hold reference to the client side game state and will order
                 self.send_user_input()
 
     def send_user_input(self):
-        client_input: ClientInputDataFormat = ClientInputDataFormat.CHANGED_DIRECTION
+        client_input: ClientInputDataFormat = ClientInputDataFormat.JUMPED
         serialized_input = pickle.dumps(client_input)
         self.s.sendto(serialized_input, SERVER_ADDRESS)
 

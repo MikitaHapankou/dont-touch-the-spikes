@@ -14,6 +14,15 @@ class Game:
 
     def update_based_on_server_game_state(self, server_game_state: GameStateBroadcastFormat, id):
         self.screen.fill("white")
+        center_x = self.screen.get_width() / 2
+        center_y = self.screen.get_height() / 2
+        
+        # Левая стенка (на x = -500)
+        pygame.draw.line(self.screen, "black", (center_x - 220, 0), (center_x - 220, 720), 5)
+        # Правая стенка (на x = 500)
+        pygame.draw.line(self.screen, "black", (center_x + 220, 0), (center_x + 220, 720), 5)
+        # Пол (на y = 200)
+        pygame.draw.line(self.screen, "blue", (0, center_y + 234), (1280, center_y + 234), 5)
         for player in server_game_state.player_positions:
             p_id = player["id"]
             pos = player["pos"]
