@@ -124,17 +124,21 @@ class Server: # for now server is designed to hold only one game session at once
         self.broadcaster.start()
         self.state = ServerState.PLAYING_OUT_THE_GAME
 
-    def play_out_the_game(self): # this way of updating will do for now
+    def play_out_the_game(self):
         t1 = time.perf_counter()
+        start_time = t1
         acc = 0.0
         while True:
             t2 = time.perf_counter()
             time_delta = t2 - t1
             t1 = t2
             acc += time_delta
+            multiplier = 1
+            if (t2 - start_time) // 10 > 1:
+                multiplier = (t2 - start_time) // 10
 
             if acc >= DT:
-                self.game_state.update(DT)
+                self.game_state.update(DT, multiplier)
                 game_data = GameStateBroadcastFormat(self.game_state.return_player_positions())
                 try:
                     self.game_states_to_send_queue.put(game_data, block=False)  # queue allegedly is thread safe

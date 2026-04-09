@@ -7,9 +7,9 @@ class ServerGameState:
     def __init__(self, players):
         self.players_states: list[ServerPlayerState] = players
 
-    def update(self, time_delta): #for test purposes only
+    def update(self, time_delta, multiplier): #for test purposes only
         for player in self.players_states:
-            player.pos[0] += time_delta * player.velocity[0]
+            player.pos[0] += time_delta * player.velocity[0] * multiplier
             if player.pos[0] > 200 or player.pos[0] < -200:
                 player.velocity[0] *= -1
             
