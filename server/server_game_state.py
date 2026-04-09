@@ -12,6 +12,11 @@ class ServerGameState:
             player.pos[0] += time_delta * player.velocity[0]
             if player.pos[0] > 200 or player.pos[0] < -200:
                 player.velocity[0] *= -1
+            
+            if player.pos[1] < -300:
+                player.pos[1] = -300
+                player.velocity[1] = 0
+
             try:
                 while not player.input_queue.empty():
                     if player.input_queue.get(block=False) == ClientInputDataFormat.JUMPED:
@@ -32,7 +37,6 @@ class ServerGameState:
                 player.pos[1] = 200
                 player.velocity[1] = 0
                 player.is_on_ground = True
-
 
     def return_player_positions(self):
         return [{"id": p.id, "pos": p.pos.copy()} for p in self.players_states]
