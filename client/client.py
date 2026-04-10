@@ -1,5 +1,7 @@
 import sys
 import os
+from dotenv import load_dotenv
+from pathlib import Path
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
@@ -13,7 +15,12 @@ from enum import Enum
 from shared.transmitted_data_formats import GameStateBroadcastFormat, MatchmakingFormingDataFormat, ClientInputDataFormat, MatchmakingResponse
 from game import Game
 
-SERVER_ADDRESS = ("127.0.0.1", 9999)
+BASE_DIR = Path(__file__).resolve().parent.parent
+load_dotenv(BASE_DIR / ".env")
+HOST = os.getenv("HOST")
+PORT = int(os.getenv("PORT"))
+
+SERVER_ADDRESS = (HOST, PORT)
 UPDATE_RATE = 60
 DT = 1.0 / UPDATE_RATE
 
