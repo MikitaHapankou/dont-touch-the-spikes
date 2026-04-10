@@ -90,22 +90,30 @@ class Client:
     def find_a_match(self):
         command = MatchmakingFormingDataFormat.CLIENT_SEEKS_MATCH
         serialized_command = pickle.dumps(command)
-        print(f"Looking for a lobby at address {SERVER_ADDRESS[0]}")
+
+        print("\nCLIENT: sending join request to", SERVER_ADDRESS)
+
         self.client_socket.sendto(serialized_command, SERVER_ADDRESS)
 
-        data, server_addr = self.client_socket.recvfrom(1024)
+        self.client_socket.settimeout(5)
 
         try:
-            server_response: MatchmakingResponse = pickle.loads(data)
-        except pickle.UnpicklingError:
-            print("Client received corrupted response when trying to find a match!")
+            data, server_addr = self.client_socket.recvfrom(1024)
+        except Exception as e:
+            print("NO RESPONSE FROM SERVER:", e)
             return
 
-        if not isinstance(server_response, MatchmakingResponse):
+        print("CLIENT: response received from", server_addr)
+
+        try:
+            server_response = pickle.loads(data)
+            print("CLIENT DECODED:", server_response)
+        except Exception as e:
+            print("BAD RESPONSE:", e)
             return
 
-        if server_addr == SERVER_ADDRESS and server_response.status == MatchmakingFormingDataFormat.FOUND_MATCH:
-            print("Game has been found!")
+        if server_response.status == MatchmakingFormingDataFormat.FOUND_MATCH:
+            print("MATCH FOUND")
             self.client_id = server_response.player_id
             self.state = ClientState.PREPARING_GAME
 
