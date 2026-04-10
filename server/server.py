@@ -94,25 +94,29 @@ class Server:
                 self.play_out_the_game()
 
     def listen_for_join_requests(self):
+        print(f"--- [SERVER] Waiting for {NUMBER_OF_PLAYERS} players ---")
         while True:
             data, client_addr = self.server_socket.recvfrom(1024)
-
+            
             try:
                 client_request: MatchmakingFormingDataFormat = pickle.loads(data)
-            except pickle.UnpicklingError:
-                print("Server received corrupted client request when forming a match")
-                return
-
-            if not isinstance(client_request, MatchmakingFormingDataFormat):
-                return
+                print(f"[JOIN_REQ] Got package from {client_addr}: {client_request}")
+            except Exception as e:
+                print(f"[JOIN_ERR] Deserialising error from {client_addr}: {e}")
+                continue
 
             if client_request == MatchmakingFormingDataFormat.CLIENT_SEEKS_MATCH:
-                self.clients.append(client_addr)
+                if client_addr not in self.clients:
+                    self.clients.append(client_addr)
+                    print(f"[LOBBY] Client {client_addr} added. Total: {len(self.clients)}")
+                else:
+                    print(f"[LOBBY] Client {client_addr} is already added. ignored.")
+
                 response = MatchmakingResponse(MatchmakingFormingDataFormat.FOUND_MATCH, len(self.clients))
-                serialized_response = pickle.dumps(response)
-                self.server_socket.sendto(serialized_response, client_addr)
+                self.server_socket.sendto(pickle.dumps(response), client_addr)
 
             if len(self.clients) >= NUMBER_OF_PLAYERS:
+                print(f"--- [SERVER] Match created, num: {self.clients} ---")
                 self.state = ServerState.PREPARING_THE_GAME
                 return
 
