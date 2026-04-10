@@ -39,18 +39,26 @@ class ServerGameStateReceiver(threading.Thread):
 
     def run(self):
         while True:
-            data, server_addr = self.s.recvfrom(1024)
-
-            if server_addr != SERVER_ADDRESS:
-                return
-
             try:
-                game_state: GameStateBroadcastFormat = pickle.loads(data)
-                self.game_state_data_queue.put(game_state, block=False)
-            except pickle.UnpicklingError:
-                print("Client received corrupted game state data!")
-            except Full:
-                print("Client game_state buffer is full!")
+                self.s.settimeout(1.0)
+                data, server_addr = self.s.recvfrom(1024)
+                
+                if server_addr != SERVER_ADDRESS:
+                    return
+
+                try:
+                    game_state: GameStateBroadcastFormat = pickle.loads(data)
+                    self.game_state_data_queue.put(game_state, block=False)
+                except pickle.UnpicklingError:
+                    print("Client received corrupted game state data!")
+                except Full:
+                    print("Client game_state buffer is full!")
+            except socket.timeout:
+                print("Waiting for server...")
+                continue 
+            except Exception as e:
+                print(f"Critical client error: {e}")
+                break
 
 
 class Client:
