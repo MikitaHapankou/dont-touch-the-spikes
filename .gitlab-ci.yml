@@ -10,5 +10,3 @@ deploy:
     - source .venv/bin/activate
     - git pull origin main
     - pip install -r requirements.txt
-
-    - nohup python server.py > app.log 2>&1 &
