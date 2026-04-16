@@ -92,7 +92,10 @@ class Client:
 
             acc += time_delta
             if acc >= DT:
-                self.try_updating_local_game_state()
+                is_dead = self.try_updating_local_game_state()
+                if is_dead == 1:
+                    time.sleep(5)
+                    os._exit(0)
                 acc -= DT
 
     def find_a_match(self):
@@ -138,7 +141,10 @@ class Client:
                 last_state = self.game_state_data_queue.get(block=False)
 
             if last_state:
-                self.game.update_based_on_server_game_state(last_state, self.client_id)
+                is_alive = self.game.update_based_on_server_game_state(last_state, self.client_id)
+                if not is_alive:
+                    time.sleep(5)
+                    os._exit(0)
         except Empty:
             print("Client tried updating his game state but game state queue was empty")
 
@@ -148,6 +154,10 @@ class Client:
                 exit(0)
             elif event.type == pygame.constants.KEYDOWN and event.key == pygame.constants.K_SPACE:
                 self.send_user_input()
+            elif event.type == pygame.constants.KEYDOWN and event.key == pygame.constants.K_q:
+                pygame.display.quit()
+                pygame.quit()
+                os._exit(0)
 
     def send_user_input(self):
         client_input: ClientInputDataFormat = ClientInputDataFormat.JUMPED

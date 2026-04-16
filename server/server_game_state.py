@@ -13,9 +13,12 @@ class ServerGameState:
         self.randomize_spike_locations()
 
     def update(self, time_delta, multiplier):
+        alive = 0
         for player in self.players_states:
             if not player.alive:
                 continue
+            
+            alive += 1
 
             player.level = multiplier
             player.pos[0] += time_delta * (player.velocity[0] + player.velocity[0] * multiplier * 0.4)
@@ -25,7 +28,13 @@ class ServerGameState:
             self.process_players_inputs(player)
             self.move_player(player, time_delta)
             self.handle_spike_collision(player)
+        
+        if alive == 1:
+            for player in self.players_states:
+                player.endGame = True
 
+        return alive
+    
     def return_player_positions(self):
         return [{"id": p.id, "pos": p.pos.copy(), "alive": p.alive, "level": p.level}
                 for p in self.players_states]
@@ -54,6 +63,10 @@ class ServerGameState:
                 self.randomize_spike_locations()
 
     def move_player(self, player, time_delta):
+        if not player.alive:
+            player.velocity[0] = 0
+            return
+        
         if not player.is_on_ground:
             player.velocity[1] += player.gravity * time_delta
             player.pos[1] += player.velocity[1] * time_delta
@@ -138,3 +151,4 @@ class ServerPlayerState:
         self.gravity = 1200
         self.jump_force = -600
         self.is_on_ground = False
+        self.endGame = False

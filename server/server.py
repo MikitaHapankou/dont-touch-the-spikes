@@ -149,7 +149,10 @@ class Server:
                 multiplier = (t2 - start_time) // 5
 
             if acc >= DT:
-                self.game_state.update(DT, multiplier)
+                users_alive = self.game_state.update(DT, multiplier)
+                print(users_alive)
+                if (users_alive == 0):
+                    os._exit(0)
                 spikes_positions = self.game_state.return_spike_locations()
                 game_data = GameStateBroadcastFormat(self.game_state.return_player_positions(), spikes_positions[0], spikes_positions[1])
                 try:

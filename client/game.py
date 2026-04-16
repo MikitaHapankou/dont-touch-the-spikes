@@ -10,6 +10,8 @@ class Game:
         pygame.font.init()
         self.screen = pygame.display.set_mode(SCREEN_SIZE)
         self.level_font = pygame.font.Font(None, 300)
+        self.loss_font = pygame.font.Font(None, 70)
+        self.loss_text = self.loss_font.render("Game over!", True, (255, 0, 0))
 
     @staticmethod
     def return_pygame_events():
@@ -29,11 +31,12 @@ class Game:
         level_surf = self.level_font.render(str(level_value), True, (220, 220, 220))
         self.screen.blit(level_surf, level_surf.get_rect(center=(cx, cy)))
 
-        self.draw_players(server_game_state.player_positions, client_id)
+        is_alive = self.draw_players(server_game_state.player_positions, client_id)
         self.draw_spikes(server_game_state.left_spikes_positions,
                          server_game_state.right_spikes_positions, cx, cy)
         pygame.display.flip()
 
+        return is_alive
 
     def draw_arena(self, cx, cy):
         left_x   = cx - ARENA_WIDTH  / 2
@@ -52,16 +55,25 @@ class Game:
         pygame.draw.rect(self.screen, (60, 60, 60), floor_rect)
 
     def draw_players(self, player_positions, client_id):
+        cx = self.screen.get_width()  / 2
+        cy = self.screen.get_height() / 2
+
         for player in player_positions:
             if not player["alive"]:
+                if player["id"] == client_id:
+                    self.screen.blit(self.loss_text, self.loss_text.get_rect(center=(cx, cy)))
+                    return False
                 continue
+
             p_id = player["id"]
             ax, ay = player["pos"]
             sx = self.screen.get_width()  / 2 + ax
             sy = self.screen.get_height() / 2 + ay
             color = "red" if p_id == client_id else "blue"
             pygame.draw.circle(self.screen, color, (sx, sy), PLAYER_RADIUS)
-
+        
+        return True
+    
     def draw_spikes(self, left_spikes, right_spikes, cx, cy):
 
         for spike in left_spikes:
