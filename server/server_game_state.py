@@ -17,7 +17,7 @@ class ServerGameState:
         for player in self.players_states:
             if not player.alive:
                 continue
-            
+
             alive += 1
 
             player.level = multiplier
@@ -60,7 +60,6 @@ class ServerGameState:
             player.velocity[1] = 0
             if not player.is_on_ground:
                 player.is_on_ground = True
-                self.randomize_spike_locations()
 
     def move_player(self, player, time_delta):
         if not player.alive:
@@ -145,7 +144,7 @@ class ServerPlayerState:
         self.level = 1
         self.input_queue: Queue = Queue()
         self.velocity = [200, 0]
-        self.pos = [random.randint(-100, 100), 0]
+        self.pos = [random.randint(-200, 200), 0]
         self.id = id
         self.alive = True
         self.gravity = 1200
