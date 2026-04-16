@@ -10,7 +10,6 @@ class ServerGameState:
         self.players_states: list[ServerPlayerState] = players
         self.right_spikes_positions: list = []
         self.left_spikes_positions: list = []
-        self.randomize_spike_locations()
 
     def update(self, time_delta, multiplier):
         alive = 0
@@ -143,7 +142,7 @@ class ServerPlayerState:
     def __init__(self, id):
         self.level = 1
         self.input_queue: Queue = Queue()
-        self.velocity = [200, 0]
+        self.velocity = [100, 0]
         self.pos = [random.randint(-200, 200), 0]
         self.id = id
         self.alive = True
