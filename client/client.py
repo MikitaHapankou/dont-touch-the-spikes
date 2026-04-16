@@ -150,11 +150,10 @@ class Client:
 
     def process_pygame_events(self):
         for event in self.game.return_pygame_events():
-            if event.type == pygame.constants.QUIT:
-                exit(0)
-            elif event.type == pygame.constants.KEYDOWN and event.key == pygame.constants.K_SPACE:
+            if event.type == pygame.constants.KEYDOWN and event.key == pygame.constants.K_SPACE:
                 self.send_user_input()
-            elif event.type == pygame.constants.KEYDOWN and event.key == pygame.constants.K_q:
+            elif event.type == pygame.constants.KEYDOWN and event.key == pygame.constants.K_q or event.type == pygame.constants.QUIT:
+                self.client_socket.close()
                 pygame.display.quit()
                 pygame.quit()
                 os._exit(0)

@@ -142,7 +142,7 @@ class ServerPlayerState:
     def __init__(self, id):
         self.level = 1
         self.input_queue: Queue = Queue()
-        self.velocity = [100, 0]
+        self.velocity = [160, 0]
         self.pos = [random.randint(-200, 200), 0]
         self.id = id
         self.alive = True
