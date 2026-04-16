@@ -36,7 +36,7 @@ class ServerGameState:
         return alive
     
     def return_player_positions(self):
-        return [{"id": p.id, "pos": p.pos.copy(), "alive": p.alive, "level": p.level}
+        return [{"id": p.id, "pos": p.pos.copy(), "alive": p.alive, "level": p.level, "endGame": p.endGame}
                 for p in self.players_states]
 
     def return_spike_locations(self):

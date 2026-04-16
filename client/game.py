@@ -12,6 +12,7 @@ class Game:
         self.level_font = pygame.font.Font(None, 300)
         self.loss_font = pygame.font.Font(None, 70)
         self.loss_text = self.loss_font.render("Game over!", True, (255, 0, 0))
+        self.win_text = self.loss_font.render("You won!", True, (0, 255, 0))
 
     @staticmethod
     def return_pygame_events():
@@ -59,13 +60,17 @@ class Game:
         cy = self.screen.get_height() / 2
 
         for player in player_positions:
+            p_id = player["id"]
             if not player["alive"]:
-                if player["id"] == client_id:
+                if p_id == client_id:
                     self.screen.blit(self.loss_text, self.loss_text.get_rect(center=(cx, cy)))
                     return False
                 continue
 
-            p_id = player["id"]
+            if player["endGame"]:
+                self.screen.blit(self.win_text, self.win_text.get_rect(center=(cx, cy)))
+                return False
+
             ax, ay = player["pos"]
             sx = self.screen.get_width()  / 2 + ax
             sy = self.screen.get_height() / 2 + ay
