@@ -13,6 +13,15 @@ class Game:
         self.loss_font = pygame.font.Font(None, 70)
         self.loss_text = self.loss_font.render("Game over!", True, (255, 0, 0))
         self.win_text = self.loss_font.render("You won!", True, (0, 255, 0))
+        self.my_player_img_alive_left = pygame.image.load("assets/player1_alive.png").convert_alpha()
+        self.enemy_img_alive_left = pygame.image.load("assets/player2_alive_left.png").convert_alpha()
+        self.my_player_img_alive_right = pygame.image.load("assets/player1_alive_right.png").convert_alpha()
+        self.enemy_img_alive_right = pygame.image.load("assets/player2_alive_right.png").convert_alpha()
+        self.my_player_img_dead = pygame.image.load("assets/player1_dead.png").convert_alpha()
+        self.enemy_img_dead = pygame.image.load("assets/player2_dead.png").convert_alpha()
+
+        self.last_x_positions = {}
+        self.facing_right = {}
 
     @staticmethod
     def return_pygame_events():
@@ -56,27 +65,64 @@ class Game:
         pygame.draw.rect(self.screen, (60, 60, 60), floor_rect)
 
     def draw_players(self, player_positions, client_id):
-        cx = self.screen.get_width()  / 2
+        cx = self.screen.get_width() / 2
         cy = self.screen.get_height() / 2
+
+        client_died_this_frame = False
+        client_won_this_frame = False
 
         for player in player_positions:
             p_id = player["id"]
-            if not player["alive"]:
-                if p_id == client_id:
-                    self.screen.blit(self.loss_text, self.loss_text.get_rect(center=(cx, cy)))
-                    return False
-                continue
+            ax, ay = player["pos"]
+            is_alive = player["alive"]
+
+            old_x = self.last_x_positions.get(p_id, ax)
+
+            if ax > old_x:
+                self.facing_right[p_id] = True  #facing right
+            elif ax < old_x:
+                self.facing_right[p_id] = False  #facing left
+
+            self.last_x_positions[p_id] = ax
+
+            #facing right by default
+            is_facing_right = self.facing_right.get(p_id, True)
+
+            if p_id == client_id:
+                #player
+                if not is_alive:
+                    current_image = self.my_player_img_dead
+                    client_died_this_frame = True
+                elif is_facing_right:
+                    current_image = self.my_player_img_alive_right
+                else:
+                    current_image = self.my_player_img_alive_left
+            else:
+                #opponent
+                if not is_alive:
+                    current_image = self.enemy_img_dead
+                elif is_facing_right:
+                    current_image = self.enemy_img_alive_right
+                else:
+                    current_image = self.enemy_img_alive_left
+
+            if is_alive or p_id == client_id:
+                sx = cx + ax
+                sy = cy + ay
+                img_rect = current_image.get_rect(center=(sx, sy))
+                self.screen.blit(current_image, img_rect)
 
             if player["endGame"]:
-                self.screen.blit(self.win_text, self.win_text.get_rect(center=(cx, cy)))
-                return False
+                client_won_this_frame = True
 
-            ax, ay = player["pos"]
-            sx = self.screen.get_width()  / 2 + ax
-            sy = self.screen.get_height() / 2 + ay
-            color = "red" if p_id == client_id else "blue"
-            pygame.draw.circle(self.screen, color, (sx, sy), PLAYER_RADIUS)
-        
+        if client_died_this_frame:
+            self.screen.blit(self.loss_text, self.loss_text.get_rect(center=(cx, cy)))
+            return False
+
+        if client_won_this_frame:
+            self.screen.blit(self.win_text, self.win_text.get_rect(center=(cx, cy)))
+            return False
+
         return True
     
     def draw_spikes(self, left_spikes, right_spikes, cx, cy):
