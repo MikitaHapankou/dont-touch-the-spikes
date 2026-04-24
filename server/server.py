@@ -150,7 +150,6 @@ class Server:
 
             if acc >= DT:
                 users_alive = self.game_state.update(DT, multiplier)
-                print(users_alive)
                 if (users_alive == 0):
                     self.server_socket.close()
                     os._exit(0)
